@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Calculator for Estimating Drainage Flow Rate</title>
+
+	<link rel="stylesheet" href="stylesheets/style.css"> 
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+	<h1>
+		Calculator for Estimating Drainage Flow Rate
+	</h1>
+	<h2 style="text-align:left">
+		Background
+	</h2>
+	<p>
+		This tool predicts the flow rate of a fluid through a catheter, given the zero-shear viscosity, \( \eta_0 \) measured by the magnetic stress rheometer (MSR). The calculations are based on the following equation: 
+	</p>
+	<script type="text/javascript" async
+	  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML">
+	</script>
+	$$
+    Q = \frac{\Delta P * \pi R^4}{8 \eta_0 L}
+    $$
+
+    <p>
+    	In the formula above, <i>Q</i> is the predicted flow rate, \( \eta_0 \) is the zero-shear viscosity, \( \Delta P \) is the gauge pressure inside the abscess, <i>R</i> is the catheter radius, and <i>L</i> is the length of the catheter. 
+    </p>
+	<p>
+		This equation was derived by Audrey Shih, Omkar Shende, and the Fuller Group at Stanford University. The manuscript detailing this work is under review.
+        <!--available at
+		<a href="https://pubs.acs.org/doi/abs/10.1021/acs.macromol.9b00753"><font color="#007BFF">here</font></a>.--> 
+        This webpage was based on Vincent Wu's calculator for solute diffusion in hydrogels (vincent.wu [at] berkeley.edu).
+	</p>
+	<h2 style="text-align:left">
+		Model Assumptions
+	</h2>
+	<ul>
+		<li>Ideal hydrogel system</li>
+		<li>Free volume void size in water and hydrogel are similar (<i>r<sub>FV</sub></i> &#8776; <i>r<sub>FVW </sub></i> = 0.269 nm)</li>
+		<li>Radius of the fibers for Poly(ethylene glycol) = 0.51 nm, Alginate = 0.83 nm and Polyacrylamide = 0.88 nm</li>
+	</ul>
+
+	<h2 style="text-align:left">
+		Flow Rate and Catheter Size Calculator
+	</h2>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/6.2.0/math.min.js"></script>
+
+	<form id=inputform>
+		<table border="0" cellspacing="10" cellpadding="10" id="inputTable">
+			<tr id="row1">
+				<td>
+					<label for="fluid">Polymer</label>
+				</td>
+				<td>
+					<select id="polymer">
+						<option value="pam">Polyacrylamide</option>
+						<option value="peg">Poly(ethylene glycol)</option>
+						<option value="alg">Alginate</option>
+					</select>
+				</td>
+				<td>
+					<label for="temperature">Temperature (&#176;C) </label>
+				</td>
+				<td>
+					<input type="number" id=temperature value="25" style="width: 70%">
+				</td>
+
+<!-- 				<td>
+					<label for="fluid">Fluid</label>
+				</td>
+				<td>
+					<select id="fluid">
+						<option value="water">Water</option>
+					</select>
+				</td>
+ -->		</tr>
+			<tr id="row2">
+				<td>
+					<span title="Polymer percentage by volume (vol%) = (volume of polymer / total volume of solution) x 100. This is a percentage value; for example, input 12% as '12'">
+						<label for="volume_fraction">Polymer Volume Fraction (%)</label>
+					</span>
+				</td>
+				<td>
+					<input type="number" id=volume_fraction value="5" style="width: 50%">
+				</td>
+				<td>
+					<span title="e.g. as measured by Dynamic Light Scattering (DLS)">
+						<label for="solute_radius">Hydrodynamic Radius of Solute (nm)</label>
+					</span>
+				</td>
+				<td>
+					<input type="number" id=solute_radius value="1.91" style="width: 70%">
+				</td>
+			</tr>
+			<tr id="row3">
+				<td>
+					<span title="also known as Correlation Length">
+						<label for="meshsize">Mesh Size (nm)</label>
+					</span>
+				</td>
+				<td>
+					<input type="number" id=meshsize value="35" style="width: 50%">
+				</td>
+				<td>
+					<span title="also known as Diffusion Constant">
+						<label for="diffusivity">Diffusivity (<span>&#181;m<sup>2</sup>/s) </label>
+					</span>
+				</td>
+				<td>
+					<input type="number" id=diffusivity style="width: 70%">
+				</td>
+			</tr>
+		</table>
+	</form>
+	<div>
+		<button style="margin: 20px 10px" onclick="calculate_hydrogel_property('mesh_size')">Calculate Mesh Size</button>
+		<button style="margin: 20px 10px" onclick="calculate_hydrogel_property('diffusivity')">Calculate Diffusivity</button>
+	</div>
+	
+
+
+	<script>
+		function calculate() {
+			var input1 = parseInt(document.getElementById("input1").value);
+			var input2 = parseInt(document.getElementById("input2").value);
+			var output = input1 + input2;
+			document.getElementById("output").value = output;
+		};
+	</script>
+
+	<script>
+		function calculate_hydrogel_property(property) {
+
+			//Set all known variable values
+			var r_FV = .269; // [nm] average radius of free-volume pockets in hydrogel
+			var r_FVW = .269; // [nm] radius of free volume voids in water
+			var T; // [C] temperature
+
+			//Determine user-inputted values
+			var r_f; // [nm] radius of polymer chain
+			var nu; // [Pa*s] dynamic viscosity
+			var r_s; // [nm] radius of solute
+			var phi_p; // [dimensionless, decimal] polymer volume fraction: ratio of polymer volume over total volume of hydrogel
+			var polymerObj = document.getElementById("polymer");
+			var polymer = polymerObj.options[polymerObj.selectedIndex].value;
+			r_s = parseFloat(document.getElementById("solute_radius").value);
+			T = parseFloat(document.getElementById("temperature").value);
+			phi_p = parseFloat(document.getElementById("volume_fraction").value);
+			phi_p = phi_p/100; // convert percentage to decimal 
+
+
+			//Extract dynamic viscosity value
+			// var fluidObj = document.getElementById("fluid");
+			// var fluid = fluidObj.options[fluidObj.selectedIndex].value;
+			// if (fluid == "water") {
+			// 	nu = 8.9*10**-4;
+			// } else if (fluid == "pbs") {
+			// 	nu = 8.9*10**-4;
+			// }
+
+			//Extract polymer chain radius value
+			if (polymer == "pam") {
+				r_f = .88;
+			} else if (polymer == "peg") {
+				r_f = .51;
+			} else if (polymer == "alg") {
+				r_f = .83;
+			}
+
+			//Calculate diffusivity of solid hydrogel in liquid
+			var D_o = calculate_diffusivity(r_s, T); // [um^2/s]
+
+			//Determine whether to calculate mesh size or diffusivity and then calculate
+			if (property == "mesh_size") {
+				var D = parseFloat(document.getElementById("diffusivity").value);
+				var mesh_size = calculate_hydrogel_meshsize(D_o, r_FV, r_s, r_FVW, phi_p, r_f, D);
+				document.getElementById("meshsize").value = mesh_size;
+			} else {
+				var mesh_size = parseFloat(document.getElementById("meshsize").value);
+				var D = calculate_hydrogel_diffusivity(D_o, r_FV, r_s, r_FVW, phi_p, r_f, mesh_size);
+
+				document.getElementById("diffusivity").value = D;
+			}
+
+		};
+
+		//Calculate mesh size given diffusivity
+		function calculate_hydrogel_meshsize(D_o, r_FV, r_s, r_FVW, phi_p, r_f, D) {
+			var mesh_size;
+			var A = (D/D_o-math.erf(r_FV/r_s)*Math.exp(-1*Math.pow(r_s/r_FVW, 3)*(phi_p/(1-phi_p))))/(1-math.erf(r_FV/r_s));
+			//console.log(A);
+			mesh_size = (r_s+r_f)/Math.pow((-Math.log(A)/Math.PI),1/2)-2*r_f;
+			//console.log(mesh_size);
+			return mesh_size.toPrecision(4)
+		}
+
+		//Calculate diffusivity given mesh size
+		function calculate_hydrogel_diffusivity(D_o, r_FV, r_s, r_FVW, phi_p, r_f, mesh_size) {
+			var D;
+			A = math.erf(r_FV/r_s)*Math.exp(-1*Math.pow(r_s/r_FVW, 3)*(phi_p/(1-phi_p)));
+			B = (1-math.erf(r_FV/r_s))*Math.exp(-1*Math.PI*Math.pow((r_s+r_f)/(mesh_size+2*r_f), 2));
+			//console.log("A: " + A);
+			//console.log("B: " + B);
+			//console.log("D_o: " + D_o);
+			D = (A+B)*D_o;
+			//console.log("D: " + D);
+			return D.toPrecision(4);
+		}
+
+		//calculate diffusivity
+		function calculate_diffusivity(r_s, T) {
+			var D_o;
+			var nu = calculate_viscosity(T); //[Pa*s], [kg*m^-1*s^-1]
+			var k_b = 1.38064852*10**-23; // [m^2*kg*s^-2*K^-1] Boltzmann Constant 
+			D_o = k_b*(T+273.15)/(6*Math.PI*nu*r_s*10**-9); // [m^2/s]
+			D_o = D_o*10**12; //[um^2/s]
+			return D_o
+		}
+
+		//calculate diffusivity
+		function calculate_viscosity(T) {
+			var nu_o = 0.001684; 
+			var k = 0.03071;
+			var plateau = 0.0002265;
+			var nu = (nu_o - plateau)*Math.exp(-k*T) + plateau;
+			return nu
+		}
+	</script>
+</body>
+</html>
