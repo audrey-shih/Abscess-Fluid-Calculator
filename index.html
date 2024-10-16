@@ -30,16 +30,16 @@
 	<p>
 		This equation was derived by Audrey Shih, Omkar Shende, and the Fuller Group at Stanford University. The manuscript detailing this work is under review.
         <!--available at
-		<a href="https://pubs.acs.org/doi/abs/10.1021/acs.macromol.9b00753"><font color="#007BFF">here</font></a>.--> 
-        This webpage was based on Vincent Wu's calculator for solute diffusion in hydrogels (vincent.wu [at] berkeley.edu).
+		<a href="https://pubs.acs.org/doi/abs/10.1021/acs.macromol.9b00753"><font color="#007BFF">here</font></a>.
+        This webpage was based on Vincent Wu's calculator for solute diffusion in hydrogels (vincent.wu [at] berkeley.edu). -->
 	</p>
 	<h2 style="text-align:left">
 		Model Assumptions
 	</h2>
 	<ul>
-		<li>Ideal hydrogel system</li>
-		<li>Free volume void size in water and hydrogel are similar (<i>r<sub>FV</sub></i> &#8776; <i>r<sub>FVW </sub></i> = 0.269 nm)</li>
-		<li>Radius of the fibers for Poly(ethylene glycol) = 0.51 nm, Alginate = 0.83 nm and Polyacrylamide = 0.88 nm</li>
+		<li>Constant pressure drop. We use intracystic pressure for \( \Delta P \).</li>
+		<li>Constant viscosity \( \eta_0 \) with negligible viscoelastic effects. However, viscoelastic effects would result in higher flow rate than estimated, not lower.</li>
+		<li>Radius <i>R</i> based on Cook Medical multipurpose drainage catheters. The same French sizing of a different brand may be a different inner diameter.</li>
 	</ul>
 
 	<h2 style="text-align:left">
@@ -52,22 +52,33 @@
 		<table border="0" cellspacing="10" cellpadding="10" id="inputTable">
 			<tr id="row1">
 				<td>
-					<label for="fluid">Polymer</label>
+					<label for="Size">Catheter Size (Fr)</label>
 				</td>
 				<td>
-					<select id="polymer">
-						<option value="pam">Polyacrylamide</option>
-						<option value="peg">Poly(ethylene glycol)</option>
-						<option value="alg">Alginate</option>
+					<select id="FrenchSize">
+						<option value="8.5 Fr">8.5</option>
+						<option value="10.2 Fr">10.2</option>
+						<option value="12 Fr">12</option>
+						<option value="12 Fr">14</option>
 					</select>
 				</td>
 				<td>
-					<label for="temperature">Temperature (&#176;C) </label>
+					<label for="Length">Catheter Length (cm)</label>
+				</td>
+				<td>
+					<select id="CatheterLength">
+						<option value="25">25</option>
+						<option value="45">45</option>
+						<option value="60">60</option>
+					</select>
+				</td>
+				<td>
+<!--				<label for="temperature">Temperature (&#176;C) </label>
 				</td>
 				<td>
 					<input type="number" id=temperature value="25" style="width: 70%">
 				</td>
-
+-->
 <!-- 				<td>
 					<label for="fluid">Fluid</label>
 				</td>
